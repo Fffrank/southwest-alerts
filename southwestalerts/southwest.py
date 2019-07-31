@@ -20,7 +20,7 @@ class Southwest(object):
         self._session = _SouthwestSession(username, password, headers)
 
     def get_upcoming_trips(self):
-        return self._session.get(
+        return self._session.getb(
             '/api/customer/v1/accounts/account-number/{}/upcoming-trips'.format(self._session.account_number))
 
     def start_change_flight(self, record_locator, first_name, last_name):
@@ -73,7 +73,7 @@ class Southwest(object):
         )
         return self._session.get(url)
 
-    def get_available_flights_dollars(self, departure_date, origin_airport, destination_airport, currency='Dollars'):
+    def get_available_flights_dollars(self, departure_date, origin_airport, destination_airport):
         url = '/api/mobile-air-booking/v1/mobile-air-booking/page/flights/products?origination-airport={origin_airport}&destination-airport={destination_airport}&departure-date={departure_date}&number-adult-passengers=1&number-senior-passengers=0&currency=USD'.format(
             origin_airport=origin_airport,
             destination_airport=destination_airport,
@@ -88,67 +88,62 @@ class _SouthwestSession():
         self._login(username, password, headers)
 
     def _login(self, username, password, headers):
-        data = self.post('/api/customer/v1/accounts/login', headers, payload={
-            'accountNumberOrUserName': username,
-            'password': password
-        })
+        data = requests.post(BASE_URL + '/api/customer/v1/accounts/login', json={
+            'accountNumberOrUserName': username, 'password': password},
+                             headers={
+                                 'X-API-Key': API_KEY,
+                                 'Content-Type': 'application/vnd.swacorp.com.accounts.login-v1.0+json',
+                                 'User-Agent': None, 'Connection': None, 'Accept-Encoding': None,
+                             }).json()
         self.account_number = data['accessTokenDetails']['accountNumber']
         self.access_token = data['accessToken']
         self.headers = headers
 
-    def get(self, path, headers, success_codes=[200]):
-        resp = self._session.get(self._get_url(path), headers=self._get_headers(headers))
+    def get(self, path, success_codes=[200]):
+        resp = self._session.get(self._get_url(path), headers=self._get_headers_all(self.headers))
         return self._parsed_response(resp, success_codes=success_codes)
 
-    def post(self, path, headers, payload, success_codes=[200]):
-        resp = self._session.post(self._get_url(path), data=json.dumps(payload), headers=self._get_headers(headers))
+    def getb(self, path, success_codes=[200]):
+        resp = self._session.get(self._get_url(path), headers=self._get_headers_brief(self.headers))
         return self._parsed_response(resp, success_codes=success_codes)
 
-    # async def _login_headers(self, url, username, password):
-    #     await launch({"headless": False})
-    #     page = await browser.newPage()
-    #     await page.goto(url)
-    #     time.sleep(2)
-    #     selector = ".login-button--box"
-    #     await page.waitForSelector(selector)
-    #     await page.click(selector)
-    #     selector = 'div[class="input huge"]'
-    #     await page.waitForSelector(selector)
-    #     await page.click(selector)
-    #     await page.keyboard.type(username)
-    #     selector = 'input[type="password"]'
-    #     await page.click(selector)
-    #     await page.keyboard.type(password)
-    #     # await page.goto('http://example.com')
-    #     selector = "#login-btn"
-    #     await page.click(selector)
-    #     time.sleep(5)
-    #     await page.setRequestInterception(True)
-    #     page.on('request', request_callback)
-    #     await page.reload()
-    #     return headers
-    #
-    # async def request_callback(request: Request):
-    #     # Prints: {'upgrade-insecure-requests': '1', 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/69.0.3494.0 Safari/537.36', 'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8'}
-    #     headers = request.headers
-    #     await request.continue_()
+    def post(self, path, payload, success_codes=[200]):
+        resp = self._session.post(self._get_url(path), data=json.dumps(payload),
+                                  headers=self._get_headers(self.headers))
+        return self._parsed_response(resp, success_codes=success_codes)
 
 
     @staticmethod
     def _get_url(path):
         return '{}{}'.format(BASE_URL, path)
 
-    def _get_headers(self, headers):
-        tempheaders = {
-            'token': (self.access_token if hasattr(self, 'access_token') else None)
+    def _get_headers_brief(self, headers):
+        default = {
+            'token': (self.access_token if hasattr(self, 'access_token') else None),
+            'X-API-Key': API_KEY,
+            # 'Content-Type': 'application/vnd.swacorp.com.accounts.login-v1.0+json',
+            # 'User-Agent': None, 'Connection': None, 'Accept-Encoding': None,
+            # 'Accept': 'application/json',
         }
-        tempheaders = tempheaders.update(headers)
+        tempheaders = {**headers, **default}
+        return default
+
+    def _get_headers_all(self, headers):
+        default = {
+            'token': (self.access_token if hasattr(self, 'access_token') else None),
+            'X-API-Key': API_KEY,
+            # 'Content-Type': 'application/vnd.swacorp.com.accounts.login-v1.0+json',
+            # 'User-Agent': None, 'Connection': None, 'Accept-Encoding': None,
+            # 'Accept': 'application/json',
+        }
+        tempheaders = {**headers, **default}
         return tempheaders
+
 
     @staticmethod
     def _parsed_response(response, success_codes=[200]):
         if response.status_code not in success_codes:
             print(response.text)
-            #raise Exception(
-            #    'Invalid status code received. Expected {}. Received {}.'.format(success_codes, response.status_code))
+            raise Exception(
+                'Invalid status code received. Expected {}. Received {}.'.format(success_codes, response.status_code))
         return response.json()
