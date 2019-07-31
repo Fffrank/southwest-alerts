@@ -8,8 +8,6 @@ from pyppeteer.network_manager import Request
 
 import requests
 
-
-API_KEY = 'l7xx0a43088fe6254712b10787646d1b298e'  # TODO: Retrieve this from https://mobile.southwest.com/js/config.js
 BASE_URL = 'https://mobile.southwest.com'
 
 
@@ -91,7 +89,7 @@ class _SouthwestSession():
         data = requests.post(BASE_URL + '/api/customer/v1/accounts/login', json={
             'accountNumberOrUserName': username, 'password': password},
                              headers={
-                                 'X-API-Key': API_KEY,
+                                 'X-API-Key': headers['x-api-key'],
                                  'Content-Type': 'application/vnd.swacorp.com.accounts.login-v1.0+json',
                                  'User-Agent': None, 'Connection': None, 'Accept-Encoding': None,
                              }).json()
@@ -120,7 +118,7 @@ class _SouthwestSession():
     def _get_headers_brief(self, headers):
         default = {
             'token': (self.access_token if hasattr(self, 'access_token') else None),
-            'X-API-Key': API_KEY,
+            'X-API-Key': headers['x-api-key'],
             # 'Content-Type': 'application/vnd.swacorp.com.accounts.login-v1.0+json',
             # 'User-Agent': None, 'Connection': None, 'Accept-Encoding': None,
             # 'Accept': 'application/json',
@@ -131,7 +129,7 @@ class _SouthwestSession():
     def _get_headers_all(self, headers):
         default = {
             'token': (self.access_token if hasattr(self, 'access_token') else None),
-            'X-API-Key': API_KEY,
+            'X-API-Key': headers['x-api-key'],
             # 'Content-Type': 'application/vnd.swacorp.com.accounts.login-v1.0+json',
             # 'User-Agent': None, 'Connection': None, 'Accept-Encoding': None,
             # 'Accept': 'application/json',
