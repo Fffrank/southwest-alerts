@@ -63,7 +63,7 @@ export EMAIL1=VALUE
 python southwestalerts/app.py
 ```
 
-#Windows  Users
+## Windows  Users
 You may need to change the locale settings in app.py -- comment out the first line and uncomment the second.
 ```
 #locale.resetlocale()
