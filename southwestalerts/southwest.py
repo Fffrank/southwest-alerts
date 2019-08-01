@@ -118,7 +118,8 @@ class _SouthwestSession():
     def _get_headers_brief(self, headers):
         default = {
             'token': (self.access_token if hasattr(self, 'access_token') else None),
-            'X-API-Key': headers['x-api-key'],
+            'x-api-key': headers['x-api-key'],
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36'
             # 'Content-Type': 'application/vnd.swacorp.com.accounts.login-v1.0+json',
             # 'User-Agent': None, 'Connection': None, 'Accept-Encoding': None,
             # 'Accept': 'application/json',
@@ -129,7 +130,8 @@ class _SouthwestSession():
     def _get_headers_all(self, headers):
         default = {
             'token': (self.access_token if hasattr(self, 'access_token') else None),
-            'X-API-Key': headers['x-api-key'],
+            'x-api-key': headers['x-api-key'],
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36'
             # 'Content-Type': 'application/vnd.swacorp.com.accounts.login-v1.0+json',
             # 'User-Agent': None, 'Connection': None, 'Accept-Encoding': None,
             # 'Accept': 'application/json',

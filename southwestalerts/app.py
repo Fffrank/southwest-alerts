@@ -13,8 +13,6 @@ from pyppeteer.network_manager import Request
 from southwestalerts.southwest import Southwest
 from southwestalerts import settings
 
-async def get_browser():
-    return await launch({"headless": False})
 
 async def get_page(browser, url):
     page = await browser.newPage()
@@ -31,8 +29,9 @@ async def request_callback(request: Request):
 
 
 async def login_get_headers(url, username, password):
-    browser = await launch({"headless": False})
+    browser = await launch({"headless": True})
     page = await browser.newPage()
+    await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36")
     await page.goto(url)
     time.sleep(2)
     selector = ".login-button--box"
