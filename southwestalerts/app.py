@@ -95,7 +95,7 @@ def check_for_price_drops(username, password, email, headers):
                     #Find that the flight that matches the purchased flight
                     matching_flight = next(f for f in available['flightShoppingPage']['outboundPage']['cards'] if f['departureTime'] == departure_time and f['arrivalTime'] == arrival_time)
                     for faretype,fare in enumerate(matching_flight['fares']):
-                            logging.info('current leg faretype %d price: %s',faretype,fare['price'])
+                            #logging.info('current leg faretype %d price: %s',faretype,fare['price'])
                             # Check to make sure the flight isnt sold out to avoid NoneType object is not subscriptable error
                             if fare['price'] is None:
                                 logging.info("fare type %d is sold out",faretype)
@@ -127,7 +127,7 @@ def check_for_price_drops(username, password, email, headers):
                 matching_flight = next(f for f in available['flightShoppingPage']['outboundPage']['cards'] if
                                        f['departureTime'] == departure_time and f['arrivalTime'] == arrival_time)
                 for faretype, fare in enumerate(matching_flight['fares']):
-                    logging.info('current leg faretype %d price: %s', faretype, fare['price'])
+                    #logging.info('current leg faretype %d price: %s', faretype, fare['price'])
                     # Check to make sure the flight isnt sold out to avoid NoneType object is not subscriptable error
                     if fare['price'] is None:
                         logging.info("fare type %d is sold out", faretype)
