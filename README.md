@@ -1,3 +1,7 @@
+Updated script from https://github.com/xur17/southwest-alerts
+
+This now uses chromium to pull the required headers and login to the southwest site to scan for price changes.
+
 # Details
 
 This is an application that can be used to monitor booked southwest flights for
@@ -25,7 +29,7 @@ domain (username.mailgun.org), or create a new one for the next step.
 3. Run docker image (replacing everything on the right side of the equal sign with your values). You can add additional username#, password#, email# values as needed for additional southwest accounts.
 
 ```
-docker run -e MAILGUN_DOMAIN=??? -e MAILGUN_API_KEY=??? -e USERNAME1=SOUTHWEST_USERNAME -e PASSWORD1=SOUTHWEST_PASSWORD -e EMAIL1=NOTIFICATION_EMAIL xur17/southwest-alerts
+docker run -e MAILGUN_DOMAIN=??? -e MAILGUN_API_KEY=??? -e USERNAME1=SOUTHWEST_USERNAME -e PASSWORD1=SOUTHWEST_PASSWORD -e EMAIL1=NOTIFICATION_EMAIL fffrank/southwest-alerts
 ```
 
 ## Option 2 - Run natively
@@ -33,7 +37,7 @@ docker run -e MAILGUN_DOMAIN=??? -e MAILGUN_API_KEY=??? -e USERNAME1=SOUTHWEST_U
 1. Pull repository
 
 ```
-git clone xur17/southwest-alerts
+git clone fffrank/southwest-alerts
 cd southwest-alerts
 ```
 
@@ -57,4 +61,11 @@ export EMAIL1=VALUE
 
 ```
 python southwestalerts/app.py
+```
+
+#Windows  Users
+You may need to change the locale settings in app.py -- comment out the first line and uncomment the second.
+```
+#locale.resetlocale()
+locale.setlocale(locale.LC_ALL, '')
 ```
