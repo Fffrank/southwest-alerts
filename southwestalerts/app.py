@@ -29,9 +29,9 @@ async def request_callback(request: Request):
 
 
 async def login_get_headers(url, username, password):
-    browser = await launch({"headless": True})
+    browser = await launch({'headless': True, 'args': ['--no-sandbox', '--user-agent="Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36"']})
     page = await browser.newPage()
-    await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36")
+    # await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36")
     await page.goto(url)
     time.sleep(2)
     selector = ".login-button--box"
