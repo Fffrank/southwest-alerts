@@ -13,6 +13,6 @@ RUN         pip3 install -r /tmp/requirements.txt
 
 COPY        . /app
 ENV         PYTHONPATH /app
-RUN         'python3 -c import "pyppeteer; pyppeteer.chromium_downloader.download_chromium()"'
+RUN         ["pyppeteer-install"]
 
 ENTRYPOINT  ["python3", "/app/southwestalerts/app.py"]
