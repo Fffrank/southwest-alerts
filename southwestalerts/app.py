@@ -100,6 +100,9 @@ def check_for_price_drops(username, password, email, headers):
                             if fare['price'] is None:
                                 logging.info("fare type %d is sold out",faretype)
                                 #if fare type is sold out, then use next rate for calculations, so let this for loop continue
+                            elif fare['price'] is None and fare['fareDescription'] == 'Business Select':
+                                logging.info("All fare buckets for this iten are sold out")
+                                break
                             else:
                                 matching_flight_price = locale.atoi(matching_flight['fares'][faretype]['price']['amount'])
                                 #if fare type isn't sold out, then set the price and break out of the faretype loop.
@@ -132,6 +135,9 @@ def check_for_price_drops(username, password, email, headers):
                     if fare['price'] is None:
                         logging.info("fare type %d is sold out", faretype)
                         # if fare type is sold out, then use next rate for calculations, so let this for loop continue
+                    elif fare['price'] is None and fare['fareDescription'] == 'Business Select':
+                        logging.info("All fare buckets for this iten are sold out")
+                        break
                     else:
                         matching_flight_price = locale.atoi(matching_flight['fares'][faretype]['price']['amount'])
                         # if fare type isn't sold out, then set the price and break out of the faretype loop.
