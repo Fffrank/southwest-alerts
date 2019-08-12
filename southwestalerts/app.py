@@ -94,8 +94,11 @@ def check_for_price_drops(username, password, email, headers):
 
                     #Find that the flight that matches the purchased flight
                     matching_flight = next(f for f in available['flightShoppingPage']['outboundPage']['cards'] if f['departureTime'] == departure_time and f['arrivalTime'] == arrival_time)
-                    for faretype,fare in enumerate(matching_flight['fares']):
-                            logging.info(matching_flight)
+                    if matching_flight['fares'] is None:
+                        logging.info("This flight is not available for comparison, possible reason: ", matching_flight['reasonIfUnavailable'])
+                        break
+                    else:
+                        for faretype,fare in enumerate(matching_flight['fares']):
                             # Check to make sure the flight isnt sold out to avoid NoneType object is not subscriptable error
                             if fare['price'] is None:
                                 logging.info("fare type %d is sold out",faretype)
@@ -127,22 +130,25 @@ def check_for_price_drops(username, password, email, headers):
                         destination_airport
                     )
                 # Find that the flight that matches the purchased flight
-                matching_flight = next(f for f in available['flightShoppingPage']['outboundPage']['cards'] if
-                                       f['departureTime'] == departure_time and f['arrivalTime'] == arrival_time)
-                for faretype, fare in enumerate(matching_flight['fares']):
-                    logging.info(matching_flight)
-                    # Check to make sure the flight isnt sold out to avoid NoneType object is not subscriptable error
-                    if fare['price'] is None:
-                        logging.info("fare type %d is sold out", faretype)
+                matching_flight = next(f for f in available['flightShoppingPage']['outboundPage']['cards'] if f['departureTime'] == departure_time and f['arrivalTime'] == arrival_time)
+                if matching_flight['fares'] is None:
+                    logging.info("This flight is not available for comparison, possible reason: ",
+                                 matching_flight['reasonIfUnavailable'])
+                    break
+                else:
+                    for faretype, fare in enumerate(matching_flight['fares']):
+                     # Check to make sure the flight isnt sold out to avoid NoneType object is not subscriptable error
+                        if fare['price'] is None:
+                            logging.info("fare type %d is sold out", faretype)
                         # if fare type is sold out, then use next rate for calculations, so let this for loop continue
-                    elif fare['price'] is None and fare['fareDescription'] == 'Business Select':
-                        logging.info("All fare buckets for this iten are sold out")
-                        break
-                    else:
-                        matching_flight_price = locale.atoi(matching_flight['fares'][faretype]['price']['amount'])
+                        elif fare['price'] is None and fare['fareDescription'] == 'Business Select':
+                            logging.info("All fare buckets for this iten are sold out")
+                            break
+                        else:
+                            matching_flight_price = locale.atoi(matching_flight['fares'][faretype]['price']['amount'])
                         # if fare type isn't sold out, then set the price and break out of the faretype loop.
-                        matching_flights_price += matching_flight_price
-                        break
+                            matching_flights_price += matching_flight_price
+                            break
 
             # Calculate refund details (current flight price - sum(current price of all legs), and print log message
             refund_amount = itinerary_price - matching_flights_price
