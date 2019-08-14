@@ -1,7 +1,7 @@
 import locale
 import time
-#locale.resetlocale()
-locale.setlocale(locale.LC_ALL, '')
+locale.resetlocale()
+#locale.setlocale(locale.LC_ALL, '')
 import logging
 import requests
 import sys
