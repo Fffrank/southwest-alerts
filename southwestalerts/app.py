@@ -1,7 +1,7 @@
 import locale
 import time
-locale.resetlocale()
-#locale.setlocale(locale.LC_ALL, '')
+#locale.resetlocale()
+locale.setlocale(locale.LC_ALL, '')
 import logging
 import requests
 import sys
@@ -95,7 +95,7 @@ def check_for_price_drops(username, password, email, headers):
                     #Find that the flight that matches the purchased flight
                     matching_flight = next(f for f in available['flightShoppingPage']['outboundPage']['cards'] if f['departureTime'] == departure_time and f['arrivalTime'] == arrival_time)
                     if matching_flight['fares'] is None:
-                        logging.info("This flight is not available for comparison, possible reason: ", matching_flight['reasonIfUnavailable'])
+                        logging.info('This flight is not available for comparison, possible reason: %s', matching_flight['reasonIfUnavailable'])
                         break
                     else:
                         for faretype,fare in enumerate(matching_flight['fares']):
@@ -132,7 +132,7 @@ def check_for_price_drops(username, password, email, headers):
                 # Find that the flight that matches the purchased flight
                 matching_flight = next(f for f in available['flightShoppingPage']['outboundPage']['cards'] if f['departureTime'] == departure_time and f['arrivalTime'] == arrival_time)
                 if matching_flight['fares'] is None:
-                    logging.info("This flight is not available for comparison, possible reason: ",
+                    logging.info('This flight is not available for comparison, possible reason: %s',
                                  matching_flight['reasonIfUnavailable'])
                     break
                 else:
