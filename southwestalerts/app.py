@@ -1,7 +1,7 @@
 import locale
 import time
-locale.resetlocale()
-#locale.setlocale(locale.LC_ALL, '')
+#locale.resetlocale()
+locale.setlocale(locale.LC_ALL, '')
 import logging
 import requests
 import sys
@@ -29,28 +29,37 @@ async def request_callback(request: Request):
 
 
 async def login_get_headers(url, username, password):
-    browser = await launch({'headless': True, 'args': ['--no-sandbox', '--user-agent="Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36"']})
-    page = await browser.newPage()
-    # await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36")
-    await page.goto(url)
-    time.sleep(2)
-    selector = ".login-button--box"
-    await page.waitForSelector(selector)
-    await page.click(selector)
-    time.sleep(2)
-    selector = 'div[class="input huge"]'
-    await page.waitForSelector(selector)
-    await page.click(selector)
-    await page.keyboard.type(username)
-    selector = 'input[type="password"]'
-    await page.click(selector)
-    await page.keyboard.type(password)
-    selector = "#login-btn"
-    await page.setRequestInterception(True)
-    page.on('request', request_callback)
-    await page.click(selector)
-    await browser.close()
-    return user.headers
+    f = 1
+    while (user.headers is None) & (f < 5):
+        logging.info('Attempt %s at capturing headers....', f)
+        browser = await launch({'headless': True, 'args': ['--no-sandbox', '--user-agent="Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36"']})
+        page = await browser.newPage()
+        # await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36")
+        await page.goto(url)
+        time.sleep(2)
+        selector = ".login-button--box"
+        await page.waitForSelector(selector)
+        await page.click(selector)
+        time.sleep(2)
+        selector = 'div[class="input huge"]'
+        await page.waitForSelector(selector)
+        await page.click(selector)
+        await page.keyboard.type(username)
+        selector = 'input[type="password"]'
+        await page.click(selector)
+        await page.keyboard.type(password)
+        selector = "#login-btn"
+        await page.setRequestInterception(True)
+        page.on('request', request_callback)
+        await page.click(selector)
+        await browser.close()
+        f += 1
+    if user.headers is not None:
+        logging.info('Success!')
+        return user.headers
+    else:
+        logging.info('Failed to capture Southwest.com headers after 5 attempts -- exiting')
+        quit()
 
 
 
@@ -71,7 +80,7 @@ def check_for_price_drops(username, password, email, headers):
                     itinerary_price = ((cancellation_details['availableFunds']['nonrefundableAmountCents'] + cancellation_details['availableFunds']['refundableAmountCents'])/100)
                     itinerary_price = round((itinerary_price / len(cancellation_details['passengers'])))  # support multi-passenger itineraries
             except:
-                print("Error: Int'l Booking (No way to determine price paid for fare.)")
+                logging.info("Failed to determine price paid for fare. International iten's not supported")
                 continue
             # Calculate total for all of the legs of the flight
             matching_flights_price = 0
