@@ -10,9 +10,9 @@ RUN         wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub |
 
 COPY        requirements.txt /tmp/
 RUN         pip3 install -r /tmp/requirements.txt
+RUN         ["pyppeteer-install"]
 
 COPY        . /app
 ENV         PYTHONPATH /app
-RUN         ["pyppeteer-install"]
 
 ENTRYPOINT  ["python3", "/app/southwestalerts/app.py"]
