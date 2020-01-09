@@ -1,10 +1,4 @@
 import json
-import time
-
-import asyncio
-
-from pyppeteer import launch
-from pyppeteer.network_manager import Request
 
 import requests
 
@@ -14,8 +8,8 @@ BASE_URL = 'https://mobile.southwest.com'
 
 
 class Southwest(object):
-    def __init__(self, username, password, headers):
-        self._session = _SouthwestSession(username, password, headers)
+    def __init__(self, username, password, headers, cookies):
+        self._session = _SouthwestSession(username, password, headers, cookies)
 
     def get_upcoming_trips(self):
         return self._session.getb(
@@ -80,22 +74,23 @@ class Southwest(object):
         return self._session.get(url)
 
 
-class _SouthwestSession():
-    def __init__(self, username, password, headers):
-        self._session = requests.Session()
-        self._login(username, password, headers)
 
-    def _login(self, username, password, headers):
+class _SouthwestSession():
+    def __init__(self, username, password, headers, cookies):
+        self._session = requests.Session()
+        self._login(username, password, headers, cookies)
+
+    def _login(self, username, password, headers, cookies):
+        headers['content-type']='application/vnd.swacorp.com.accounts.login-v1.0+json'
         data = requests.post(BASE_URL + '/api/customer/v1/accounts/login', json={
             'accountNumberOrUserName': username, 'password': password},
-                             headers={
-                                 'X-API-Key': headers['x-api-key'],
-                                 'Content-Type': 'application/vnd.swacorp.com.accounts.login-v1.0+json',
-                                 'User-Agent': None, 'Connection': None, 'Accept-Encoding': None,
-                             }).json()
+                             headers=headers
+                                )
+        data = data.json()
         self.account_number = data['accessTokenDetails']['accountNumber']
         self.access_token = data['accessToken']
         self.headers = headers
+        self.cookies = cookies
 
     def get(self, path, success_codes=[200]):
         resp = self._session.get(self._get_url(path), headers=self._get_headers_all(self.headers))
@@ -115,6 +110,13 @@ class _SouthwestSession():
     def _get_url(path):
         return '{}{}'.format(BASE_URL, path)
 
+    def _get_cookies(self, cookies):
+        for x in cookies:
+            self._session.cookies.set(x['name'], x['value'], domain=x['domain'], path=x['path'])
+        default = self._session.cookies
+        return default
+
+
     def _get_headers_brief(self, headers):
         default = {
             'token': (self.access_token if hasattr(self, 'access_token') else None),
@@ -125,36 +127,23 @@ class _SouthwestSession():
             'accept': None,
             'x-requested-with': None,
             'referer': None
-            # 'Content-Type': 'application/vnd.swacorp.com.accounts.login-v1.0+json',
-            # 'User-Agent': None, 'Connection': None, 'Accept-Encoding': None,
-            # 'Accept': 'application/json',
         }
         tempheaders = {**headers, **default}
-        return default
+        return tempheaders
 
     def _get_headers_all(self, headers):
         default = {
-            'token': None,
-            # 'token': (self.access_token if hasattr(self, 'access_token') else None),
-            'x-api-key': headers['x-api-key'],
-            'user-agent': None,
-            # 'cookie' : None,
-            'x-user-experience-id' : None,
-            # 'sec-fetch-mode': 'cors',
-            # 'sec-fetch-site': 'same-origin',
-            #
-            'origin': None,
-            # 'content-type': None,
-            # 'accept': None,
-            'x-requested-with': None,
-            'referer': None,
-            'Content-Type': None,
-            # 'User-Agent': None,
-            'Connection': None,
-            'Accept-Encoding': None,
-            'Accept': None
+            'user-agent': "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36",
         }
         tempheaders = {**headers, **default}
+        tempheaders.pop('origin')
+        tempheaders.pop('x-user-experience-id')
+        #tempheaders.pop('user-agent')
+        tempheaders.pop('content-type')
+        tempheaders.pop('accept')
+        tempheaders.pop('x-requested-with')
+        tempheaders.pop('cookie')
+        tempheaders.pop('referer')
         return tempheaders
 
 
@@ -165,3 +154,5 @@ class _SouthwestSession():
             raise Exception(
                 'Invalid status code received. Expected {}. Received {}.'.format(success_codes, response.status_code))
         return response.json()
+
+
