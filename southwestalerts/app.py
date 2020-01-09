@@ -1,7 +1,7 @@
 import locale
 import time
-#locale.resetlocale()
-locale.setlocale(locale.LC_ALL, '')
+locale.resetlocale()
+#locale.setlocale(locale.LC_ALL, '')
 import logging
 import requests
 import sys
@@ -27,6 +27,7 @@ async def request_callback(request: Request):
     else:
         await request.continue_()
 
+
 async def login_get_headers(url, username, password):
     browser = await launch({'headless': True, 'args': ['--no-sandbox', '--user-agent="Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36"']})
     page = await browser.newPage()
@@ -48,6 +49,7 @@ async def login_get_headers(url, username, password):
     await page.setRequestInterception(True)
     page.on('request', request_callback)
     await page.click(selector)
+    user.cookies = await page.cookies()
     await browser.close()
     return user.headers
 
@@ -88,24 +90,24 @@ async def login_get_headers(url, username, password):
 
 
 
-def check_for_price_drops(username, password, email, headers):
-    southwest = Southwest(username, password, headers)
+def check_for_price_drops(username, password, email, headers, cookies):
+    southwest = Southwest(username, password, headers, cookies)
     for trip in southwest.get_upcoming_trips()['trips']:
         for flight in trip['flights']:
             passenger = flight['passengers'][0]
             record_locator = flight['recordLocator']
             logging.info('Processing: %s', record_locator)
-            try:
-                cancellation_details = southwest.get_cancellation_details(record_locator, passenger['firstName'], passenger['lastName'])
-                if cancellation_details['currencyType'] == "Points":
-                    itinerary_price = cancellation_details['pointsRefund']['amountPoints']
-                    itinerary_price = int(itinerary_price/len(cancellation_details['passengers'])) # support multi-passenger itineraries
-                elif cancellation_details['currencyType'] == "Dollars":
-                    itinerary_price = ((cancellation_details['availableFunds']['nonrefundableAmountCents'] + cancellation_details['availableFunds']['refundableAmountCents'])/100)
-                    itinerary_price = round((itinerary_price / len(cancellation_details['passengers'])))  # support multi-passenger itineraries
-            except:
-                logging.info("Failed to determine price paid for fare. International iten's not supported")
-                continue
+            # try:
+            cancellation_details = southwest.get_cancellation_details(record_locator, passenger['firstName'], passenger['lastName'])
+            if cancellation_details['currencyType'] == "Points":
+                itinerary_price = cancellation_details['pointsRefund']['amountPoints']
+                itinerary_price = int(itinerary_price/len(cancellation_details['passengers'])) # support multi-passenger itineraries
+            elif cancellation_details['currencyType'] == "Dollars":
+                itinerary_price = ((cancellation_details['availableFunds']['nonrefundableAmountCents'] + cancellation_details['availableFunds']['refundableAmountCents'])/100)
+                itinerary_price = round((itinerary_price / len(cancellation_details['passengers'])))  # support multi-passenger itineraries
+            # except:
+            #     logging.info("Failed to determine price paid for fare. International iten's not supported")
+            #     continue
             # Calculate total for all of the legs of the flight
             matching_flights_price = 0
             if cancellation_details['currencyType'] == "Points":
@@ -217,4 +219,4 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     for user in settings.users:
         user.headers = loop.run_until_complete(login_get_headers(mobile_url, user.username, user.password))
-        check_for_price_drops(user.username, user.password, user.email, user.headers)
+        check_for_price_drops(user.username, user.password, user.email, user.headers, user.cookies)
