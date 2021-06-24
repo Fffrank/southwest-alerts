@@ -1,2 +1,3 @@
 requests
 pyppeteer
+pyee==6.0.0
