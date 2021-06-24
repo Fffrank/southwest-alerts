@@ -7,6 +7,7 @@ class User:
     email = None
     headers = None
     cookies = None
+    account = None
 
     def __init__(self, username, password, email, headers, cookies):
         self.username = username

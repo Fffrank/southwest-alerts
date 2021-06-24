@@ -8,12 +8,18 @@ BASE_URL = 'https://mobile.southwest.com'
 
 
 class Southwest(object):
-    def __init__(self, username, password, headers, cookies):
-        self._session = _SouthwestSession(username, password, headers, cookies)
+    def __init__(self, username, password, headers, cookies, account):
+        self._session = _SouthwestSession(username, password, headers, cookies, account)
 
     def get_upcoming_trips(self):
-        return self._session.getb(
-            '/api/customer/v1/accounts/account-number/{}/upcoming-trips'.format(self._session.account_number))
+        # return self._session.get(
+        #     '/api/mobile-air-booking/v1/mobile-air-booking/page/view-reservation/{record_locator}?{first_name}&last-name={last_name}'.format(
+        #         record_locator=record_locator,
+        #         first_name=first_name,
+        #         last_name=last_name
+        return self._session.get(
+            '/api/mobile-misc/v1/mobile-misc/page/upcoming-trips'
+            )
 
     def start_change_flight(self, record_locator, first_name, last_name):
         """Start the flight change process.
@@ -50,23 +56,38 @@ class Southwest(object):
         return self._session.get(url)
 
     def get_cancellation_details(self, record_locator, first_name, last_name):
-        url = '/api/reservations-api/v1/air-reservations/reservations/record-locator/{record_locator}?first-name={first_name}&last-name={last_name}&action=CANCEL'.format(
+        # url = '/api/reservations-api/v1/air-reservations/reservations/record-locator/{record_locator}?first-name={first_name}&last-name={last_name}&action=CANCEL'.format(
+        url = '/api/mobile-air-booking/v1/mobile-air-booking/page/view-reservation/{record_locator}?first-name={first_name}&last-name={last_name}'.format(
             record_locator=record_locator,
             first_name=first_name,
             last_name=last_name
         )
-        return self._session.get(url)
+        temp = self._session.get(url)
+        url = '/api/mobile-air-booking/v1/mobile-air-booking/page/flights/cancel-bound/{record_locator}?passenger-search-token={token}'.format(
+            record_locator=record_locator,
+            token=temp['viewReservationViewPage']['_links']['cancelBound']['query']['passenger-search-token']
+        )
+        temp = self._session.get(url)
+        url = '/api/mobile-air-booking/v1/mobile-air-booking/page/flights/cancel/refund-quote/{record_locator}'.format(
+            record_locator=record_locator
+        )
+        payload = temp['viewForCancelBoundPage']['_links']['refundQuote']['body']
+        return self._session.post(url, payload)
+
 
     def get_available_flights(self, departure_date, origin_airport, destination_airport, currency='Points'):
-        url = '/api/mobile-air-booking/v1/mobile-air-booking/page/flights/products?origination-airport={origin_airport}&destination-airport={destination_airport}&departure-date={departure_date}&number-adult-passengers=1&number-senior-passengers=0&currency=PTS'.format(
+        url = '/api/mobile-air-booking/v1/mobile-air-booking/page/flights/products?origination-airport={origin_airport}&destination-airport={destination_airport}&departure-date={departure_date}&number-adult-passengers=1&currency=PTS'.format(
             origin_airport=origin_airport,
             destination_airport=destination_airport,
             departure_date=departure_date
         )
+        #uurl = '{}{}'.format(BASE_URL, url)
+        #resp = requests.get(uurl, headers=self._get_headers_all(self.headers))
+        #return resp.json()
         return self._session.get(url)
 
     def get_available_flights_dollars(self, departure_date, origin_airport, destination_airport):
-        url = '/api/mobile-air-booking/v1/mobile-air-booking/page/flights/products?origination-airport={origin_airport}&destination-airport={destination_airport}&departure-date={departure_date}&number-adult-passengers=1&number-senior-passengers=0&currency=USD'.format(
+        url = '/api/mobile-air-booking/v1/mobile-air-booking/page/flights/products?origination-airport={origin_airport}&destination-airport={destination_airport}&departure-date={departure_date}&number-adult-passengers=1&currency=USD'.format(
             origin_airport=origin_airport,
             destination_airport=destination_airport,
             departure_date=departure_date
@@ -76,23 +97,28 @@ class Southwest(object):
 
 
 class _SouthwestSession():
-    def __init__(self, username, password, headers, cookies):
+    def __init__(self, username, password, headers, cookies, account):
         self._session = requests.Session()
-        self._login(username, password, headers, cookies)
+        self._login(username, password, headers, cookies, account)
 
-    def _login(self, username, password, headers, cookies):
-        headers['content-type']='application/vnd.swacorp.com.accounts.login-v1.0+json'
-        data = requests.post(BASE_URL + '/api/customer/v1/accounts/login', json={
-            'accountNumberOrUserName': username, 'password': password},
-                             headers=headers
-                                )
-        data = data.json()
-        self.account_number = data['accessTokenDetails']['accountNumber']
-        self.access_token = data['accessToken']
+    def _login(self, username, password, headers, cookies, account):
+        # headers['content-type']='application/vnd.swacorp.com.accounts.login-v1.0+json'
+        # headers['user-agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.87 Safari/537.36'
+        # data = requests.post(BASE_URL + '/api/mobile-misc/v1/mobile-misc/feature/my-account', json={
+        #    'accountNumberOrUserName': username, 'password': password},
+        #                     headers=headers
+        #                        )
+        # data = requests.get(BASE_URL + '/api/mobile-misc/v1/mobile-misc/feature/my-account', headers=headers)
+        # data = data.json()
+        # self.account_number = data['accessTokenDetails']['accountNumber']
+        self.account_number = account['customers.userInformation.accountNumber']
+        self.access_token = account['access_token']
         self.headers = headers
         self.cookies = cookies
 
     def get(self, path, success_codes=[200]):
+        #resp = requests.get(self._get_url(path), headers=self._get_headers_all(self.headers))
+        #resp = requests.get(self._get_url(path), headers=self._get_headers_all(self.headers))
         resp = self._session.get(self._get_url(path), headers=self._get_headers_all(self.headers))
         return self._parsed_response(resp, success_codes=success_codes)
 
@@ -101,8 +127,11 @@ class _SouthwestSession():
         return self._parsed_response(resp, success_codes=success_codes)
 
     def post(self, path, payload, success_codes=[200]):
+        #print(json.dumps(payload))
+        tempheaders = self._get_headers_all(self.headers)
+        tempheaders['content-type'] = 'application/json'
         resp = self._session.post(self._get_url(path), data=json.dumps(payload),
-                                  headers=self._get_headers(self.headers))
+                                  headers=tempheaders)
         return self._parsed_response(resp, success_codes=success_codes)
 
 
@@ -121,7 +150,7 @@ class _SouthwestSession():
         default = {
             'token': (self.access_token if hasattr(self, 'access_token') else None),
             'x-api-key': headers['x-api-key'],
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.87 Safari/537.36',
             'origin': None,
             'content-type': None,
             'accept': None,
@@ -133,26 +162,35 @@ class _SouthwestSession():
 
     def _get_headers_all(self, headers):
         default = {
-            'user-agent': "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36",
+            'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.87 Safari/537.36",
         }
         tempheaders = {**headers, **default}
-        tempheaders.pop('origin')
-        tempheaders.pop('x-user-experience-id')
-        #tempheaders.pop('user-agent')
-        tempheaders.pop('content-type')
-        tempheaders.pop('accept')
-        tempheaders.pop('x-requested-with')
-        tempheaders.pop('cookie')
-        tempheaders.pop('referer')
+        # tempheaders.pop('origin')
+        # tempheaders.pop('x-user-experience-id')
+        # #tempheaders.pop('user-agent')
+        # tempheaders.pop('content-type')
+        # tempheaders.pop('accept')
+        # tempheaders.pop('x-requested-with')
+        # tempheaders.pop('cookie')
+        # tempheaders.pop('referer')
+        #return default
         return tempheaders
 
 
     @staticmethod
     def _parsed_response(response, success_codes=[200]):
-        if response.status_code not in success_codes:
+        if response.status_code == '429':
+            print(response.text)
+            raise Exception(
+                'Invalid status code received. Expected {}. Received {}.'
+                'This error usually indicates a rate limiting has kicked in from southwest.'
+                'Wait and try again later.'.format(
+                    success_codes, response.status_code))
+        elif response.status_code not in success_codes:
             print(response.text)
             raise Exception(
                 'Invalid status code received. Expected {}. Received {}.'.format(success_codes, response.status_code))
+        #print(response.json())
         return response.json()
 
 
