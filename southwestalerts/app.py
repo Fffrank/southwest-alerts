@@ -50,7 +50,7 @@ async def login_get_headers(url, username, password):
     while f < 5:
         logging.info('Attempt %s at capturing headers....', f)
         f = f+1
-        browser = await launch({'headless': False, 'args': ['--no-sandbox', '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.87 Safari/537.36']})
+        browser = await launch({'headless': True, 'args': ['--no-sandbox', '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.87 Safari/537.36']})
         page = await browser.newPage()
         # await stealth(page)
         # await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36")
