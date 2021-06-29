@@ -64,18 +64,15 @@ class Southwest(object):
             last_name=last_name
         )
         temp = self._session.get(url)
-        time.sleep(5)
         url = '/api/mobile-air-booking/v1/mobile-air-booking/page/flights/cancel-bound/{record_locator}?passenger-search-token={token}'.format(
             record_locator=record_locator,
             token=temp['viewReservationViewPage']['_links']['cancelBound']['query']['passenger-search-token']
         )
         temp = self._session.get(url)
-        time.sleep(5)
         url = '/api/mobile-air-booking/v1/mobile-air-booking/page/flights/cancel/refund-quote/{record_locator}'.format(
             record_locator=record_locator
         )
         payload = temp['viewForCancelBoundPage']['_links']['refundQuote']['body']
-        time.sleep(5)
         return self._session.post(url, payload)
 
 
@@ -121,12 +118,14 @@ class _SouthwestSession():
         self.cookies = cookies
 
     def get(self, path, success_codes=[200]):
+        time.sleep(5)
         #resp = requests.get(self._get_url(path), headers=self._get_headers_all(self.headers))
         #resp = requests.get(self._get_url(path), headers=self._get_headers_all(self.headers))
         resp = self._session.get(self._get_url(path), headers=self._get_headers_all(self.headers))
         return self._parsed_response(resp, success_codes=success_codes)
 
     def getb(self, path, success_codes=[200]):
+        time.sleep(5)
         resp = self._session.get(self._get_url(path), headers=self._get_headers_brief(self.headers))
         return self._parsed_response(resp, success_codes=success_codes)
 
