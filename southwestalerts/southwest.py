@@ -1,4 +1,5 @@
 import json
+import time
 
 import requests
 
@@ -117,12 +118,14 @@ class _SouthwestSession():
         self.cookies = cookies
 
     def get(self, path, success_codes=[200]):
+        time.sleep(5)
         #resp = requests.get(self._get_url(path), headers=self._get_headers_all(self.headers))
         #resp = requests.get(self._get_url(path), headers=self._get_headers_all(self.headers))
         resp = self._session.get(self._get_url(path), headers=self._get_headers_all(self.headers))
         return self._parsed_response(resp, success_codes=success_codes)
 
     def getb(self, path, success_codes=[200]):
+        time.sleep(5)
         resp = self._session.get(self._get_url(path), headers=self._get_headers_brief(self.headers))
         return self._parsed_response(resp, success_codes=success_codes)
 
