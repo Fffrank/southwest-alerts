@@ -140,11 +140,14 @@ def check_for_price_drops(username, password, email, headers, cookies, account):
             logging.info('Processing: %s', record_locator)
             # try:
             cancellation_details = southwest.get_cancellation_details(record_locator, passenger['first-name'], passenger['last-name'])
+            if cancellation_details['cancelRefundQuotePage']['refundableFunds'] is None:
+                cancellation_details['cancelRefundQuotePage']['refundableFunds'] = {}
+                cancellation_details['cancelRefundQuotePage']['refundableFunds']['amount'] = 0
             if cancellation_details['cancelRefundQuotePage']['tripTotals'][0]['currencyCode'] == "PTS":
                 itinerary_price = cancellation_details['cancelRefundQuotePage']['pointsToCreditTotal']['amount'].replace(',', '')
                 itinerary_price = int(float(itinerary_price)/len(cancellation_details['cancelRefundQuotePage']['passengers'])) # support multi-passenger itineraries
             elif cancellation_details['cancelRefundQuotePage']['tripTotals'][0]['currencyCode'] == "USD":
-                itinerary_price = float(cancellation_details['cancelRefundQuotePage']['nonRefundableFunds']['amount']) + float(cancellation_details['cancelRefundQuotePage']['refundableFunds'] or 0)
+                itinerary_price = float(cancellation_details['cancelRefundQuotePage']['nonRefundableFunds']['amount']) + float(cancellation_details['cancelRefundQuotePage']['refundableFunds']['amount'] or 0)
                 itinerary_price = round((itinerary_price / len(cancellation_details['cancelRefundQuotePage']['passengers'])))  # support multi-passenger itineraries
             # except:
             #     logging.info("Failed to determine price paid for fare. International iten's not supported")
@@ -243,9 +246,10 @@ def check_for_price_drops(username, password, email, headers, cookies, account):
             # Calculate refund details (current flight price - sum(current price of all legs), and print log message
             refund_amount = itinerary_price - matching_flights_price
             if matching_flights_price == 0:
-                base_message='(unavailable) 0'
+                base_message = '(unavailable) 0'
             else:
-                base_message='Price drop of {}'.format(refund_amount) if refund_amount > 0 else 'Price increase of {}'.format(refund_amount * -1)
+                base_message = 'Price drop of {}'.format(refund_amount) if refund_amount > 0 else 'Price increase of {}'.format(refund_amount * -1)
+                user.success += 1
             message = '{base_message} {currency} detected for flight {record_locator} from {origin_airport} to {destination_airport} on {departure_date}'.format(
                 base_message=base_message,
                 refund_amount=refund_amount,
@@ -273,5 +277,7 @@ if __name__ == '__main__':
     mobile_url="https://mobile.southwest.com/"
     loop = asyncio.get_event_loop()
     for user in settings.users:
+        user.success = 0
         user.headers = loop.run_until_complete(login_get_headers(mobile_url, user.username, user.password))
+        # while user.success <= 0:
         check_for_price_drops(user.username, user.password, user.email, user.headers, user.cookies, user.account)

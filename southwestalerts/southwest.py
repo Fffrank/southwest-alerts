@@ -118,11 +118,18 @@ class _SouthwestSession():
         self.cookies = cookies
 
     def get(self, path, success_codes=[200]):
-        time.sleep(5)
-        #resp = requests.get(self._get_url(path), headers=self._get_headers_all(self.headers))
-        #resp = requests.get(self._get_url(path), headers=self._get_headers_all(self.headers))
-        resp = self._session.get(self._get_url(path), headers=self._get_headers_all(self.headers))
-        return self._parsed_response(resp, success_codes=success_codes)
+        f = 1
+        while f < 8:
+            print('.', end='', flush=True)
+            time.sleep(5)
+            #resp = requests.get(self._get_url(path), headers=self._get_headers_all(self.headers))
+            #resp = requests.get(self._get_url(path), headers=self._get_headers_all(self.headers))
+            resp = self._session.get(self._get_url(path), headers=self._get_headers_all(self.headers))
+            if resp.status_code == 200:
+                return self._parsed_response(resp, success_codes=success_codes)
+                break
+            f = f+1
+
 
     def getb(self, path, success_codes=[200]):
         time.sleep(5)
@@ -182,11 +189,11 @@ class _SouthwestSession():
 
     @staticmethod
     def _parsed_response(response, success_codes=[200]):
-        if response.status_code == '429':
+        if response.status_code == 429:
             print(response.text)
-            raise Exception(
-                'Invalid status code received. Expected {}. Received {}.'
-                'This error usually indicates a rate limiting has kicked in from southwest.'
+            print(
+                'Invalid status code received. Expected {}. Received {}. '
+                'This error usually indicates a rate limiting has kicked in from southwest. '
                 'Wait and try again later.'.format(
                     success_codes, response.status_code))
         elif response.status_code not in success_codes:
