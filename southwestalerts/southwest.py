@@ -77,7 +77,7 @@ class Southwest(object):
 
 
     def get_available_flights(self, departure_date, origin_airport, destination_airport, currency='Points'):
-        url = '/api/mobile-air-booking/v1/mobile-air-booking/page/flights/products?origination-airport={origin_airport}&destination-airport={destination_airport}&departure-date={departure_date}&number-adult-passengers=1&currency=PTS'.format(
+        url = '/api/mobile-air-shopping/v1/mobile-air-shopping/page/flights/products?origination-airport={origin_airport}&destination-airport={destination_airport}&departure-date={departure_date}&number-adult-passengers=1&currency=PTS'.format(
             origin_airport=origin_airport,
             destination_airport=destination_airport,
             departure_date=departure_date
@@ -88,7 +88,7 @@ class Southwest(object):
         return self._session.get(url)
 
     def get_available_flights_dollars(self, departure_date, origin_airport, destination_airport):
-        url = '/api/mobile-air-booking/v1/mobile-air-booking/page/flights/products?origination-airport={origin_airport}&destination-airport={destination_airport}&departure-date={departure_date}&number-adult-passengers=1&currency=USD'.format(
+        url = '/api/mobile-air-shopping/v1/mobile-air-shopping/page/flights/products?origination-airport={origin_airport}&destination-airport={destination_airport}&departure-date={departure_date}&number-adult-passengers=1&currency=USD'.format(
             origin_airport=origin_airport,
             destination_airport=destination_airport,
             departure_date=departure_date
@@ -175,6 +175,9 @@ class _SouthwestSession():
             'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.87 Safari/537.36",
         }
         tempheaders = {**headers, **default}
+        # tempheaders['authority'] = 'mobile.southwest.com'
+        # tempheaders['sec-ch-ua'] = '" Not;A Brand";v="99", "Google Chrome";v="91", "Chromium";v="91"'
+        # tempheaders['sec-ch-ua-mobile'] = '?0'
         # tempheaders.pop('origin')
         # tempheaders.pop('x-user-experience-id')
         # #tempheaders.pop('user-agent')
