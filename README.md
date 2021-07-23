@@ -1,6 +1,7 @@
 Updated script from https://github.com/xur17/southwest-alerts
 
 This now uses chromium to pull the required headers and login to the southwest site to scan for price changes.
+
 Note: I am not a python developer and this is fairly hacked together.
 
 # Details
