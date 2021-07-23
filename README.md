@@ -1,7 +1,7 @@
 Updated script from https://github.com/xur17/southwest-alerts
 
 This now uses chromium to pull the required headers and login to the southwest site to scan for price changes.
-# Updated 6/24/2021 and should be working again.  Please feel free to suggest changes or improve my code.  I am not a python developer and this is fairly hacked together.
+Note: I am not a python developer and this is fairly hacked together.
 
 # Details
 
@@ -62,11 +62,4 @@ export EMAIL1=VALUE
 
 ```
 python southwestalerts/app.py
-```
-
-## Windows  Users
-You may need to change the locale settings in app.py -- comment out the first line and uncomment the second.
-```
-#locale.resetlocale()
-locale.setlocale(locale.LC_ALL, '')
 ```
