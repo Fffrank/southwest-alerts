@@ -166,13 +166,14 @@ def check_for_price_drops(username, password, email, headers, cookies, account):
                     departure_time = origination_destination['departureTime']
                     # arrival_datetime = origination_destination['segments'][-1]['arrivalDateTime'].split('.000')[0][:-3]
                     arrival_time = origination_destination['arrivalTime']
-
+                    pass_num = len(cancellation_details['cancelRefundQuotePage']['passengers'])
                     origin_airport = origination_destination['departureAirportCode']
                     destination_airport = origination_destination['arrivalAirportCode']
                     available = southwest.get_available_flights(
                         departure_date,
                         origin_airport,
-                        destination_airport
+                        destination_airport,
+                        pass_num
                     )
 
                     # Find that the flight that matches the purchased flight
@@ -218,13 +219,14 @@ def check_for_price_drops(username, password, email, headers, cookies, account):
                     departure_time = origination_destination['departureTime']
                     #arrival_datetime = origination_destination['segments'][-1]['arrivalDateTime'].split('.000')[0][:-3]
                     arrival_time = origination_destination['arrivalTime']
-
+                    pass_num = len(cancellation_details['cancelRefundQuotePage']['passengers'])
                     origin_airport = origination_destination['departureAirportCode']
                     destination_airport = origination_destination['arrivalAirportCode']
                     available = southwest.get_available_flights_dollars(
                         departure_date,
                         origin_airport,
-                        destination_airport
+                        destination_airport,
+                        pass_num
                     )
                 # Find that the flight that matches the purchased flight
                 matching_flight = next(f for f in available['flightShoppingPage']['outboundPage']['cards'] if f['departureTime'] == departure_time and f['arrivalTime'] == arrival_time)
