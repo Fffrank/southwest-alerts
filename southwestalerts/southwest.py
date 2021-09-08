@@ -76,22 +76,24 @@ class Southwest(object):
         return self._session.post(url, payload)
 
 
-    def get_available_flights(self, departure_date, origin_airport, destination_airport, currency='Points'):
-        url = '/api/mobile-air-shopping/v1/mobile-air-shopping/page/flights/products?origination-airport={origin_airport}&destination-airport={destination_airport}&departure-date={departure_date}&number-adult-passengers=1&currency=PTS'.format(
+    def get_available_flights(self, departure_date, origin_airport, destination_airport, pass_num, currency='Points'):
+        url = '/api/mobile-air-shopping/v1/mobile-air-shopping/page/flights/products?origination-airport={origin_airport}&destination-airport={destination_airport}&departure-date={departure_date}&number-adult-passengers={pass_num}&currency=PTS'.format(
             origin_airport=origin_airport,
             destination_airport=destination_airport,
-            departure_date=departure_date
+            departure_date=departure_date,
+            pass_num=pass_num
         )
         #uurl = '{}{}'.format(BASE_URL, url)
         #resp = requests.get(uurl, headers=self._get_headers_all(self.headers))
         #return resp.json()
         return self._session.get(url)
 
-    def get_available_flights_dollars(self, departure_date, origin_airport, destination_airport):
-        url = '/api/mobile-air-shopping/v1/mobile-air-shopping/page/flights/products?origination-airport={origin_airport}&destination-airport={destination_airport}&departure-date={departure_date}&number-adult-passengers=1&currency=USD'.format(
+    def get_available_flights_dollars(self, departure_date, origin_airport, destination_airport, pass_num):
+        url = '/api/mobile-air-shopping/v1/mobile-air-shopping/page/flights/products?origination-airport={origin_airport}&destination-airport={destination_airport}&departure-date={departure_date}&number-adult-passengers={pass_num}&currency=USD'.format(
             origin_airport=origin_airport,
             destination_airport=destination_airport,
-            departure_date=departure_date
+            departure_date=departure_date,
+            pass_num=pass_num
         )
         return self._session.get(url)
 
