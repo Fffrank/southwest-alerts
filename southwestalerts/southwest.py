@@ -66,13 +66,16 @@ class Southwest(object):
         temp = self._session.get(url)
         url = '/api/mobile-air-booking/v1/mobile-air-booking/page/flights/cancel-bound/{record_locator}?passenger-search-token={token}'.format(
             record_locator=record_locator,
-            token=temp['viewReservationViewPage']['_links']['cancelBound']['query']['passenger-search-token']
+            token=temp['viewReservationViewPage']['_links']['contactInformation']['query']['passenger-search-token']
         )
         temp = self._session.get(url)
         url = '/api/mobile-air-booking/v1/mobile-air-booking/page/flights/cancel/refund-quote/{record_locator}'.format(
             record_locator=record_locator
         )
-        payload = temp['viewForCancelBoundPage']['_links']['refundQuote']['body']
+        try:
+            payload = temp['viewForCancelBoundPage']['_links']['refundQuote']['body']
+        except KeyError:
+            return temp
         return self._session.post(url, payload)
 
 
@@ -127,7 +130,7 @@ class _SouthwestSession():
             #resp = requests.get(self._get_url(path), headers=self._get_headers_all(self.headers))
             #resp = requests.get(self._get_url(path), headers=self._get_headers_all(self.headers))
             resp = self._session.get(self._get_url(path), headers=self._get_headers_all(self.headers))
-            if resp.status_code == 200:
+            if resp.status_code == 200 or 400:
                 return self._parsed_response(resp, success_codes=success_codes)
                 break
             f = f+1
@@ -201,6 +204,10 @@ class _SouthwestSession():
                 'This error usually indicates a rate limiting has kicked in from southwest. '
                 'Wait and try again later.'.format(
                     success_codes, response.status_code))
+        elif response.status_code == 400:
+            print(response.text)
+            print('Problem with this reservation -- check southwest.com.')
+            return response.json()
         elif response.status_code not in success_codes:
             print(response.text)
             raise Exception(
