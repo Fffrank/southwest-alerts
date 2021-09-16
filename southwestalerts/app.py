@@ -142,8 +142,13 @@ def check_for_price_drops(username, password, email, headers, cookies, account):
             passenger = trip['_links']['viewReservationViewPage']['query']
             record_locator = trip['confirmationNumber']
             logging.info('Processing: %s', record_locator)
+            #if cancellation_details['cancelRefundQuotePage']['headerMessage']['icon'] == 'WARNING':
+             #   logging.info("There appears to be a problem with this reservation and/or it is not ticketed.  Check it on southwest.com.  Skipping.")
+              #  continue
             # try:
             cancellation_details = southwest.get_cancellation_details(record_locator, passenger['first-name'], passenger['last-name'])
+            if cancellation_details.get('message') is not None:
+                continue
             if cancellation_details['cancelRefundQuotePage']['refundableFunds'] is None:
                 cancellation_details['cancelRefundQuotePage']['refundableFunds'] = {}
                 cancellation_details['cancelRefundQuotePage']['refundableFunds']['amount'] = 0
