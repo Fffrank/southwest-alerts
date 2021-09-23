@@ -50,54 +50,58 @@ async def request_callback(request: Request):
 
 
 async def login_get_headers(url, username, password):
-    f = 1
-    while f < 5:
-        logging.info('Attempt %s at capturing headers....', f)
-        f = f+1
-        browser = await launch({'headless': True, 'args': ['--no-sandbox', '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.87 Safari/537.36']})
-        page = await browser.newPage()
-        # await stealth(page)
-        # await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36")
-        await page.goto(url, options={'timeout':600000})
-        time.sleep(2)
-        selector = ".login-button--box"
-        await page.waitForSelector(selector)
-        await page.click(selector)
-        time.sleep(2)
-        selector = 'div[class="input huge"]'
-        await page.waitForSelector(selector)
-        await page.click(selector)
-        await page.keyboard.type(username)
-        selector = 'input[type="password"]'
-        await page.click(selector)
-        await page.keyboard.type(password)
-        selector = "#login-btn"
-        await page.setRequestInterception(True)
-        page.on('request', request_callback)
-        time.sleep(2)
-        page.on('response', catch_response)
-        await page.click(selector)
-        time.sleep(2)
-        user.cookies = await page.cookies()
-        await browser.close()
-        #logging.info(user.headers['x-api-idtoken'])
-        #logging.info(user.headers)
-        #return user.headers
-        if user.account is not None and user.account['messageKey'] is not None:
-            if user.account['messageKey'] == 'ERROR':
-                continue
-        if user.account is not None and user.account['code'] == 429999999:
-            continue
-        if user.headers is not None and user.account is not None:
-            user.headers['authorization'] = "Bearer " + user.account['access_token']
-            user.headers['x-api-idtoken'] = user.account['id_token']
+    for attempt in range(10):
+        try:
+            logging.info('Attempt %s at capturing headers....', attempt)
+            browser = await launch({'headless': False, 'args': ['--no-sandbox', '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.87 Safari/537.36']})
+            page = await browser.newPage()
+            # await stealth(page)
+            # await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3494.0 Safari/537.36")
+            await page.goto(url, options={'timeout':600000})
+            time.sleep(2)
+            selector = ".login-button--box"
+            await page.waitForSelector(selector)
+            await page.click(selector)
+            time.sleep(2)
+            selector = 'div[class="input huge"]'
+            await page.waitForSelector(selector)
+            await page.click(selector)
+            await page.keyboard.type(username)
+            selector = 'input[type="password"]'
+            await page.click(selector)
+            await page.keyboard.type(password)
+            selector = "#login-btn"
+            await page.setRequestInterception(True)
+            page.on('request', request_callback)
+            time.sleep(2)
+            page.on('response', catch_response)
+            await page.click(selector)
+            time.sleep(2)
+            user.cookies = await page.cookies()
             await browser.close()
-            return user.headers
-        if user.account is None:
+            #logging.info(user.headers['x-api-idtoken'])
+            #logging.info(user.headers)
+            #return user.headers
+            if user.account is not None and user.account['messageKey'] is not None:
+                if user.account['messageKey'] == 'ERROR':
+                    continue
+            if user.account is not None and user.account['code'] == 429999999:
+                continue
+            if user.headers is not None and user.account is not None:
+                user.headers['authorization'] = "Bearer " + user.account['access_token']
+                user.headers['x-api-idtoken'] = user.account['id_token']
+                await browser.close()
+                return user.headers
+            if user.account is None:
+                continue
+        except:
+            logging.info('Error.....  Waiting 60 seconds before retry.')
+            time.sleep(60)
             continue
         else:
-            logging.info('Failed to capture Southwest.com headers after 5 attempts -- exiting')
-            quit()
+            logging.info('Unsuccessful. Quitting.')
+            exit()
+
 
 # async def login_get_headers(url, username, password):
 #     f = 1
