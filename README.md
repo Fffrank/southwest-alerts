@@ -34,6 +34,21 @@ domain (username.mailgun.org), or create a new one for the next step.
 docker run -e MAILGUN_DOMAIN=??? -e MAILGUN_API_KEY=??? -e USERNAME1=SOUTHWEST_USERNAME -e PASSWORD1=SOUTHWEST_PASSWORD -e EMAIL1=NOTIFICATION_EMAIL fffrank/southwest-alerts
 ```
 
+optionally run via docker-compose:
+```
+services:
+  southwest-alerts:
+    container_name: southwest-alerts
+    build: https://github.com/Fffrank/southwest-alerts.git
+    environment:
+      - MAILGUN_DOMAIN=???
+      - MAILGUN_API_KEY=???
+      - USERNAME1=SOUTHWEST_USERNAME
+      - PASSWORD1=SOUTHWEST_PASSWORD
+      - EMAIL1=NOTIFICATION_EMAIL
+    restart: always
+```
+
 ## Option 2 - Run natively
 
 1. Pull repository
